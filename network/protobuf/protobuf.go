@@ -16,7 +16,7 @@ import (
 // -------------------------
 type Processor struct {
 	littleEndian bool
-	msgInfo      []*MsgInfo
+	msgInfo      map[uint16]*MsgInfo
 	msgID        map[reflect.Type]uint16
 }
 
@@ -47,7 +47,7 @@ func (p *Processor) SetByteOrder(littleEndian bool) {
 }
 
 // It's dangerous to call the method on routing or marshaling (unmarshaling)
-func (p *Processor) Register(msg proto.Message) uint16 {
+func (p *Processor) Register(first, second uint8, msg proto.Message) uint16 {
 	msgType := reflect.TypeOf(msg)
 	if msgType == nil || msgType.Kind() != reflect.Ptr {
 		glog.Fatal("protobuf message pointer required")
@@ -59,10 +59,10 @@ func (p *Processor) Register(msg proto.Message) uint16 {
 		glog.Fatalf("too many protobuf messages (max = %v)", math.MaxUint16)
 	}
 
+	id := uint16(first)<<8+uint16(second)
 	i := new(MsgInfo)
 	i.msgType = msgType
-	p.msgInfo = append(p.msgInfo, i)
-	id := uint16(len(p.msgInfo) - 1)
+	p.msgInfo[id] = i
 	p.msgID[msgType] = id
 	return id
 }

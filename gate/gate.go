@@ -5,6 +5,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/name5566/leaf/network"
 	"net"
+	"io"
 	"reflect"
 	"time"
 )
@@ -92,6 +93,11 @@ type agent struct {
 func (a *agent) Run() {
 	for {
 		data, err := a.conn.ReadMsg()
+		if err == io.EOF {
+			//if remote closed just quit quiet
+			break
+		}
+
 		if err != nil {
 			glog.Errorf("read message: %v", err)
 			break
